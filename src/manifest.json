@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "browser-shortcuts",
+  "description": "A chrome extension to introduce browser shortcuts",
+  "options_page": "options.html",
+  "background": { "service_worker": "background.bundle.js" },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon-34.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "icons": {
+    "128": "icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*", "<all_urls>"],
+      "js": ["contentScript.bundle.js"],
+      "css": ["content.styles.css"]
+    }
+  ],
+  "devtools_page": "devtools.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["content.styles.css", "icon-128.png", "icon-34.png"],
+      "matches": []
+    }
+  ],
+  "commands": {
+    "next-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Right",
+        "mac": "MacCtrl+Right"
+      },
+      "description": "switch to the tab on the right"
+    },
+    "previous-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Left",
+        "mac": "MacCtrl+Left"
+      },
+      "description": "switch to the tab on the left"
+    },
+    "close-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Delete",
+        "mac": "MacCtrl+Delete"
+      },
+      "description": "close the current tab"
+    }
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab"
+  ]
+}
