@@ -27,20 +27,22 @@ var compiler = webpack(config);
 
 var server = new WebpackDevServer(
   {
-    https: false,
+    https: true, // true / false 
+    //   key: path.join(__dirname, 'localhost-key.pem'),
+    //   cert: path.join(__dirname, 'localhost.pem'),
     hot: true,
     liveReload: false,
     client: {
-      webSocketTransport: 'sockjs',
+      webSocketTransport: 'sockjs', // sockjs / ws
     },
-    webSocketServer: 'sockjs',
+    webSocketServer: 'sockjs', // sockjs / ws
     host: 'localhost',
     port: env.PORT,
     static: {
       directory: path.join(__dirname, '../build'),
     },
     devMiddleware: {
-      publicPath: `http://localhost:${env.PORT}/`,
+      publicPath: `wss://localhost:${env.PORT}/`,
       writeToDisk: true,
     },
     headers: {

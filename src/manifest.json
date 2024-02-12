@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "browser-shortcuts",
   "description": "A chrome extension to introduce browser shortcuts",
+  "host_permissions": ["https://*.youtube.com/*"],
   "options_page": "options.html",
   "background": { "service_worker": "background.bundle.js" },
   "action": {
@@ -16,7 +17,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*", "<all_urls>"],
+      "matches": ["https://*.youtube.com/*"],
       "js": ["contentScript.bundle.js"],
       "css": ["content.styles.css"]
     }
@@ -24,8 +25,8 @@
   "devtools_page": "devtools.html",
   "web_accessible_resources": [
     {
-      "resources": ["content.styles.css", "icon-128.png", "icon-34.png"],
-      "matches": []
+      "resources": ["content.styles.css", "icon-128.png", "icon-34.png", "bookmark.png", "delete.png", "play.png"],
+      "matches": ["https://*.youtube.com/*"]
     }
   ],
   "commands": {
@@ -42,18 +43,16 @@
         "mac": "MacCtrl+Left"
       },
       "description": "switch to the tab on the left"
-    },
-    "close-tab": {
-      "suggested_key": {
-        "default": "Ctrl+Delete",
-        "mac": "MacCtrl+Delete"
-      },
-      "description": "close the current tab"
     }
   },
   "permissions": [
     "tabs",
     "storage",
-    "activeTab"
-  ]
+    "activeTab",
+    "contextMenus"  
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';",
+    "script-src": ["'self'", "'https://www.youtube.com'"]
+  }
 }

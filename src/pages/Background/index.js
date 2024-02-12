@@ -1,18 +1,4 @@
-console.log('This is the background page.');
-console.log('Put the background scripts here.');
-
-/* 
-    Listen for ctrl + right arrow key press to switch to the tab on the right
-    Listen for ctrl + left arrow key press to switch to the tab on the left
-    Listen for ctrl + shift + right arrow key press to move the tab to the right
-    Listen for ctrl + shift + left arrow key press to move the tab to the left
-    Listen for ctrl + shift + up arrow key press to move the tab to the first position
-    Listen for ctrl + shift + down arrow key press to move the tab to the last position
-    Listen for ctrl + shift + delete key press to close the tab
-    Listen for ctrl + shift + enter key press to open a new tab
-    Listen for ctrl + shift + t key press to reopen the last closed tab
-    Listen for ctrl + shift + r key press to reload the tab
-*/
+console.log('Background script running');
 
 chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
@@ -62,23 +48,46 @@ chrome.commands.onCommand.addListener((command) => {
                 chrome.tabs.update(previousTab.id, {active: true}); 
             });
             break;
-
-        case 'close-tab':
-            chrome.tabs.query({currentWindow: true}, function(tabs) {
-                let activeTab = tabs.find(tab => tab.active);
-                chrome.tabs.remove(activeTab.id);
-            });
-            break;
     }
 });
 
-// chrome.commands.onCommand.addListener(function(command) {
-//     if (command === 'next-tab') {
-//         chrome.tabs.query({currentWindow: true}, function(tabs) {
-//             let activeTab = tabs.find(tab => tab.active);
-//             let nextTab = tabs[(tabs.indexOf(activeTab) + 1) % tabs.length];
-//             chrome.tabs.update(nextTab.id, {active: true}); 
-//         });
-//     }
+chrome.tabs.onUpdated.addListener((tabId, tab) => {
+    console.log("Tab updated: ", tabId, tab.url);
+    if (tab.url && tab.url.includes("youtube.com/watch")) {
+        const queryParameters = tab.url.split("?")[1];
+        const urlParameters = new URLSearchParams(queryParameters);
+        const videoId = urlParameters.get("v");
+        console.log("sending message with type new");
+        chrome.tabs.sendMessage(tabId, {type: "NEW", videoId});
+    }
+});
+
+// const sendMessageToContentScript = (tabId, url) => {
+//   if (url && url.includes("youtube.com/watch")) {
+//     const queryParameters = url.split("?")[1];
+//     const urlParameters = new URLSearchParams(queryParameters);
+
+//     chrome.tabs.sendMessage(tabId, {
+//       type: "NEW",
+//       videoId: urlParameters.get("v"),
+//     }, function(response) {
+//       if (chrome.runtime.lastError) {
+//         console.log(`Error: ${chrome.runtime.lastError.message}`);
+//       } else {
+//         console.log(`Received response: ${response}`);
+//       }
+//     });
+//   }
+// };
+
+// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+//   if (changeInfo.status === 'complete') {
+//     sendMessageToContentScript(tabId, tab.url);
+//   }
 // });
-    
+
+// chrome.tabs.onActivated.addListener((activeInfo) => {
+//   chrome.tabs.get(activeInfo.tabId, (tab) => {
+//     sendMessageToContentScript(activeInfo.tabId, tab.url);
+//   });
+// });

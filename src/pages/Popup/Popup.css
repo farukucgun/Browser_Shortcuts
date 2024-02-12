@@ -1,4 +1,4 @@
-.App {
+.app {
   position: absolute;
   top: 0px;
   bottom: 0px;
@@ -10,12 +10,44 @@
   background-color: #282c34;
 }
 
-.App-header {
-  height: 100%;
+.title {
+  color: #61dafb;
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.no_bookmarks {
+  color: #61dafb;
+  font-size: 1.25em;
+  margin-bottom: 10px;
+}
+
+.bookmark {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+}
+
+.bookmark_description {
+  color: #61dafb;
+  font-size: 1.25em;
+  margin-bottom: 10px;
+}
+
+.control_elements {
+  display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
+  height: 100%;
+}
+
+.control_element {
+  margin: 2px;
+  border: 1px solid #61dafb;
+  border-radius: 5px;
+  color: #61dafb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 20px;
+  height: 20px;
 }
