@@ -53,6 +53,6 @@
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';",
-    "script-src": ["'self'", "'https://www.youtube.com'"]
+    "script-src": ["'self'", "'https://*.youtube.com/*'"]
   }
 }

@@ -28,8 +28,6 @@ var compiler = webpack(config);
 var server = new WebpackDevServer(
   {
     https: true, // true / false 
-    //   key: path.join(__dirname, 'localhost-key.pem'),
-    //   cert: path.join(__dirname, 'localhost.pem'),
     hot: true,
     liveReload: false,
     client: {
@@ -42,7 +40,7 @@ var server = new WebpackDevServer(
       directory: path.join(__dirname, '../build'),
     },
     devMiddleware: {
-      publicPath: `wss://localhost:${env.PORT}/`,
+      publicPath: `https://localhost:${env.PORT}/`, // wss://localhost:3000/
       writeToDisk: true,
     },
     headers: {

@@ -7,40 +7,48 @@ const Popup = () => {
   const [bookmarks, setBookmarks] = useState([]);
 
   useEffect(() => {
-    chrome.storage.onChanged.addListener((changes, namespace) => {
-      for (let key in changes) {
-        if (key === currentVideo) {
-          const newBookmarks = changes[key].newValue
-            ? JSON.parse(changes[key].newValue)
-            : [];
-          setBookmarks(newBookmarks);
-          console.log("Updated bookmarks: ", newBookmarks);
-        }
+    updateBookmarks();
+
+    // Listen for changes to the current tab
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      if (changeInfo.status === 'complete') {
+        updateBookmarks();
       }
     });
+  }, []);
 
-    chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
-      console.log("tab: ", tabs[0]);
-
-      if (tabs[0].url) {
-        const queryParameters = tabs[0].url.split("?")[1]; 
+  const updateBookmarks = () => {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+      if (tabs[0].url && tabs[0].url.includes("youtube.com/watch")) {
+        const queryParameters = tabs[0].url.split("?")[1];
         const urlParameters = new URLSearchParams(queryParameters);
-  
         const currentVideo = urlParameters.get("v");
-  
-        if (tabs[0].url.includes("youtube.com/watch") && currentVideo) {
+
+        if (currentVideo) {
           chrome.storage.sync.get([currentVideo], (data) => {
             const currentVideoBookmarks = data[currentVideo] ? JSON.parse(data[currentVideo]) : [];
             setBookmarks(currentVideoBookmarks);
-            console.log("bookmarks: ", bookmarks);
           });
         } else {
           setBookmarks([]);
         }
       }
     });
+  };
 
-}, []);
+  const handleDeleteBookmark = (time) => {
+    // Filter out the bookmark to be deleted
+    const updatedBookmarks = bookmarks.filter((bookmark) => bookmark.time !== time);
+
+    // Update Chrome storage with the updated bookmarks
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+      const currentTabId = tabs[0].id;
+      chrome.tabs.sendMessage(currentTabId, { type: 'DELETE', value: time }, () => {
+        // Update local state after deletion
+        setBookmarks(updatedBookmarks);
+      });
+    });
+  };
 
   return (
     <div className="app">
@@ -53,6 +61,7 @@ const Popup = () => {
           <Bookmark 
             key={bookmark.time} 
             bookmark={bookmark} 
+            onDeleteBookmark={handleDeleteBookmark}
             />
         ))}
       </div>

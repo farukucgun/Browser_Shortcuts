@@ -5,6 +5,20 @@ import deleteImage from '../../../assets/img/delete.png';
 import '../Popup.css';
 
 const Bookmark = ({bookmark, onDeleteBookmark}) => {
+
+    const handleDeleteBookmark = (e) => {
+        e.stopPropagation();
+        onDeleteBookmark(bookmark.time);
+    }
+
+    const handlePlayBookmark = (e) => {
+        e.stopPropagation();
+        chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
+            const tabId = tabs[0].id;
+            chrome.tabs.sendMessage(tabId, {type: 'PLAY', value: bookmark.time});
+        });
+    }
+
     return (
         <div
             id={'bookmark-' + bookmark.time}
@@ -16,25 +30,12 @@ const Bookmark = ({bookmark, onDeleteBookmark}) => {
                 <img
                     src={playImage}
                     className='control_element'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
-                            const tabId = tabs[0].id;
-                            chrome.tabs.sendMessage(tabId, {type: 'PLAY', value: bookmark.time});
-                        });
-                    
-                    }}
+                    onClick={handlePlayBookmark}
                 />
                 <img
                     src={deleteImage}
                     className='control_element'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
-                            const tabId = tabs[0].id;
-                            chrome.tabs.sendMessage(tabId, {type: 'DELETE', value: bookmark.time});
-                        });
-                    }}
+                    onClick={handleDeleteBookmark}
                 />
             </div>
         </div>
