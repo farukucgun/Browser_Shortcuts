@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import Bookmark from './Bookmark/Bookmark';
 import './Popup.css';
 
+/**
+ * TODO:
+ * Add keyboard shortcuts to add and navigate through bookmarks
+ * bookmark sharing 
+ * 
+ * BUGS:
+ * some unrelated bookmarks get deleted when deleting a bookmark sometimes
+ * above goes for the edit function as well
+ * save bookmark button doesn't show up sometimes 
+ */
+
 const Popup = () => {
 
   const [bookmarks, setBookmarks] = useState([]);
@@ -9,13 +20,12 @@ const Popup = () => {
   useEffect(() => {
     updateBookmarks();
 
-    // Listen for changes to the current tab
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      if (changeInfo.status === 'complete') {
-        updateBookmarks();
-      }
-    });
-  }, []);
+    // chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    //   if (changeInfo.status === 'complete') {
+    //     updateBookmarks();
+    //   }
+    // });
+  }, [bookmarks]);
 
   const updateBookmarks = () => {
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
@@ -37,16 +47,29 @@ const Popup = () => {
   };
 
   const handleDeleteBookmark = (time) => {
-    // Filter out the bookmark to be deleted
     const updatedBookmarks = bookmarks.filter((bookmark) => bookmark.time !== time);
+    setBookmarks(updatedBookmarks);
 
-    // Update Chrome storage with the updated bookmarks
+    console.log("deleting the bookmark: ", time);
+    console.log("bookmarks: ", updatedBookmarks);
+
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-      const currentTabId = tabs[0].id;
-      chrome.tabs.sendMessage(currentTabId, { type: 'DELETE', value: time }, () => {
-        // Update local state after deletion
-        setBookmarks(updatedBookmarks);
-      });
+      if (tabs && tabs.length > 0 && tabs[0].id) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: 'DELETE', value: time } );
+      }
+    });
+  };
+
+  const handleEditBookmark = (time, newDescription) => {
+    const updatedBookmarks = bookmarks.map(bookmark =>
+        bookmark.time === time ? { ...bookmark, description: newDescription } : bookmark
+    );
+    setBookmarks(updatedBookmarks);
+
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+      if (tabs && tabs.length > 0 && tabs[0].id) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: 'EDIT', value: time,  description: newDescription } );
+      }
     });
   };
 
@@ -62,6 +85,7 @@ const Popup = () => {
             key={bookmark.time} 
             bookmark={bookmark} 
             onDeleteBookmark={handleDeleteBookmark}
+            onEditBookmark={handleEditBookmark}
             />
         ))}
       </div>

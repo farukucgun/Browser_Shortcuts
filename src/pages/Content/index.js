@@ -45,7 +45,7 @@ window.onload = () => {
 
         const newBookmark = {
           time: currentTime,
-          description: 'Bookmark at ' + getTime(currentTime)
+          description: 'Bookmark at: '
         };
 
         fetchBookmarks((bookmarks) => {
@@ -65,27 +65,24 @@ window.onload = () => {
   }
 
   chrome.runtime.onMessage.addListener((request, sender, response) => {
-    const { type, value, videoId } = request;
+    const { type, value, description, videoId } = request;
     console.log('Message received:', request);
     if (type === "NEW") {
       currentVideo = videoId;
       newVideoLoaded();
     } else if (type === "PLAY") {
       youtubePlayer.currentTime = value;
+      youtubePlayer.play();
     } else if ( type === "DELETE") {
       currentVideoBookmarks = currentVideoBookmarks.filter((b) => b.time != value);
       chrome.storage.sync.set({ [currentVideo]: JSON.stringify(currentVideoBookmarks) });
-
-      response(currentVideoBookmarks);
+    } else if (type === "EDIT") {
+      const updatedBookmarks = bookmarks.map(bookmark =>
+        bookmark.time === time ? { ...bookmark, description: description } : bookmark
+      );
+      chrome.storage.sync.set({ [currentVideo]: JSON.stringify(updatedBookmarks) });
     }
   });
   
   newVideoLoaded();
-};
-
-const getTime = (seconds) => {
-  var date = new Date(0);
-  date.setSeconds(seconds);
-
-  return date.toISOString().substring(11, 19);
 };

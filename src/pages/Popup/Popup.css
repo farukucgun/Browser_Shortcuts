@@ -28,7 +28,7 @@
   align-items: center;
 }
 
-.bookmark_description {
+.bookmark_description, .bookmark_time {
   color: #61dafb;
   font-size: 1.25em;
   margin-bottom: 10px;
