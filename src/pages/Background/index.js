@@ -51,32 +51,69 @@ chrome.commands.onCommand.addListener((command) => {
     }
 });
 
-// chrome.tabs.onUpdated.addListener((tabId, tab) => {
-// 	console.log("Tab updated: ", tabId, tab.url);
-// 	if (tab.url && tab.url.includes("youtube.com/watch")) {
-// 		const queryParameters = tab.url.split("?")[1];
-// 		const urlParameters = new URLSearchParams(queryParameters);
-// 		const videoId = urlParameters.get("v");
-// 		console.log("sending message with type new");
-// 		chrome.tabs.sendMessage(tabId, {type: "NEW", videoId: videoId}, function(response) {
-// 			if (chrome.runtime.lastError) {
-// 				console.log(`Error: ${chrome.runtime.lastError.message}`);
-// 			} else {
-// 				console.log(`Received response: ${response}`);
-// 			}
-// 		});
-// 	}
-// });
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    const { type, videoId, value, description } = request;
+    console.log('Message received:', request);
+
+    if (type === 'GET_BOOKMARKS') {
+        chrome.storage.sync.get([videoId], (data) => {
+            const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
+            sendResponse(bookmarks);
+        });
+
+        return true;
+    }
+
+    else if (type === 'PLAY_BOOKMARK') {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]) {
+              chrome.tabs.sendMessage(tabs[0].id, { type: 'PLAY_BOOKMARK', value: value }); // Propagate message to content script
+            }
+        });
+    }
+
+    else if (type === 'ADD_BOOKMARK') {
+        chrome.storage.sync.get([videoId], (data) => {
+            const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
+            const newBookmark = {
+                time: value,
+                description: 'Bookmark at: '
+            };
+
+            if (bookmarks.some((b) => b.time === newBookmark.time)) {
+                return;
+            }
+
+            const updatedBookmarks = [...bookmarks, newBookmark].sort((a, b) => a.time - b.time);
+            chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
+        });
+    }
+
+    else if (type === 'DELETE_BOOKMARK') {
+        chrome.storage.sync.get([videoId], (data) => {
+            const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
+            const updatedBookmarks = bookmarks.filter((bookmark) => bookmark.time !== value);
+            chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
+        });
+    }
+
+    else if (type === 'EDIT_BOOKMARK') {
+        chrome.storage.sync.get([videoId], (data) => {
+            const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
+            const updatedBookmarks = bookmarks.map(bookmark =>
+                bookmark.time === value ? { ...bookmark, description: description } : bookmark
+            );
+            chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
+        });
+    }
+});
 
 const sendMessageToContentScript = (tabId, url) => {
   	if (url && url.includes("youtube.com/watch")) {
 		const queryParameters = url.split("?")[1];
 		const urlParameters = new URLSearchParams(queryParameters);
 
-		chrome.tabs.sendMessage(tabId, {
-			type: "NEW",
-			videoId: urlParameters.get("v"),
-		}, function(response) {
+		chrome.tabs.sendMessage(tabId, { type: "NEW_VIDEO", videoId: urlParameters.get("v") }, (response) => {
 			if (chrome.runtime.lastError) {
 				console.log(`Error: ${chrome.runtime.lastError.message}`);
 			} else {

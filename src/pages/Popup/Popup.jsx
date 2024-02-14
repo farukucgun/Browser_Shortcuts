@@ -8,89 +8,74 @@ import './Popup.css';
  * bookmark sharing 
  * 
  * BUGS:
- * some unrelated bookmarks get deleted when deleting a bookmark sometimes
- * above goes for the edit function as well
  * save bookmark button doesn't show up sometimes 
  */
 
 const Popup = () => {
 
-  const [bookmarks, setBookmarks] = useState([]);
+    const [bookmarks, setBookmarks] = useState([]);
+    const [currentVideo, setCurrentVideo] = useState('');
+    const [currentTab, setCurrentTab] = useState('');
 
-  useEffect(() => {
-    updateBookmarks();
+    useEffect(() => {
+        updateBookmarks();
+    }, []);
 
-    // chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    //   if (changeInfo.status === 'complete') {
-    //     updateBookmarks();
-    //   }
-    // });
-  }, [bookmarks]);
+    const updateBookmarks = async () => {
+        chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+            setCurrentTab(tabs[0].id);
+            if (tabs[0].url && tabs[0].url.includes("youtube.com/watch")) {
+                const queryParameters = tabs[0].url.split("?")[1];
+                const urlParameters = new URLSearchParams(queryParameters);
+                const currentVideo = urlParameters.get("v");
 
-  const updateBookmarks = () => {
-    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-      if (tabs[0].url && tabs[0].url.includes("youtube.com/watch")) {
-        const queryParameters = tabs[0].url.split("?")[1];
-        const urlParameters = new URLSearchParams(queryParameters);
-        const currentVideo = urlParameters.get("v");
+                if (currentVideo) {
+                    setCurrentVideo(currentVideo);
+                    chrome.runtime.sendMessage(currentTab, { type: 'GET_BOOKMARKS', videoId: currentVideo }, (response) => {
+                        setBookmarks(response);
+                    });
+                }
+            }
+        });
+    };
 
-        if (currentVideo) {
-          chrome.storage.sync.get([currentVideo], (data) => {
-            const currentVideoBookmarks = data[currentVideo] ? JSON.parse(data[currentVideo]) : [];
-            setBookmarks(currentVideoBookmarks);
-          });
-        } else {
-          setBookmarks([]);
-        }
-      }
-    });
-  };
+    const handleDeleteBookmark = async (time) => {
+        const updatedBookmarks = bookmarks.filter((bookmark) => bookmark.time !== time);
+        setBookmarks(updatedBookmarks);
 
-  const handleDeleteBookmark = (time) => {
-    const updatedBookmarks = bookmarks.filter((bookmark) => bookmark.time !== time);
-    setBookmarks(updatedBookmarks);
+        await chrome.runtime.sendMessage({ type: 'DELETE_BOOKMARK', videoId: currentVideo, value: time });
+    };
 
-    console.log("deleting the bookmark: ", time);
-    console.log("bookmarks: ", updatedBookmarks);
+    const handleEditBookmark = async (time, newDescription) => {
+        const updatedBookmarks = bookmarks.map(bookmark =>
+            bookmark.time === time ? { ...bookmark, description: newDescription } : bookmark
+        );
+        setBookmarks(updatedBookmarks);
 
-    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-      if (tabs && tabs.length > 0 && tabs[0].id) {
-        chrome.tabs.sendMessage(tabs[0].id, { type: 'DELETE', value: time } );
-      }
-    });
-  };
+        await chrome.runtime.sendMessage({ type: 'EDIT_BOOKMARK', videoId: currentVideo, value: time, description: newDescription });
+    };
 
-  const handleEditBookmark = (time, newDescription) => {
-    const updatedBookmarks = bookmarks.map(bookmark =>
-        bookmark.time === time ? { ...bookmark, description: newDescription } : bookmark
+    const handlePlayBookmark = async (time) => {
+        await chrome.runtime.sendMessage({ type: 'PLAY_BOOKMARK', value: time });
+    };
+
+    return (
+        <div className="app">
+            <h3 className='title'>Your bookmarks for this video</h3>
+            <div className='bookmarks'>
+                {bookmarks.length === 0 && <h3 className='no_bookmarks'>No bookmarks yet</h3>}
+                {bookmarks.map((bookmark) => (
+                    <Bookmark 
+                        key={bookmark.time} 
+                        bookmark={bookmark} 
+                        onDeleteBookmark={handleDeleteBookmark}
+                        onEditBookmark={handleEditBookmark}
+                        onPlayBookmark={handlePlayBookmark}
+                    />
+                ))}
+            </div>
+        </div>
     );
-    setBookmarks(updatedBookmarks);
-
-    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-      if (tabs && tabs.length > 0 && tabs[0].id) {
-        chrome.tabs.sendMessage(tabs[0].id, { type: 'EDIT', value: time,  description: newDescription } );
-      }
-    });
-  };
-
-  return (
-    <div className="app">
-      <h3 className='title'>
-        Your bookmarks for this video
-      </h3>
-      <div className='bookmarks'>
-        {bookmarks.length === 0 && <h3 className='no_bookmarks'>No bookmarks yet</h3>}
-        {bookmarks.map((bookmark) => (
-          <Bookmark 
-            key={bookmark.time} 
-            bookmark={bookmark} 
-            onDeleteBookmark={handleDeleteBookmark}
-            onEditBookmark={handleEditBookmark}
-            />
-        ))}
-      </div>
-    </div>
-  );
 };
 
 export default Popup;

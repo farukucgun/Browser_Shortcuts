@@ -4,7 +4,7 @@ import deleteImage from '../../../assets/img/delete.png';
 
 import '../Popup.css';
 
-const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark}) => {
+const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark, onPlayBookmark}) => {
 
     const [isEditing, setIsEditing] = useState(false);
     const [description, setDescription] = useState(bookmark.description);
@@ -16,10 +16,7 @@ const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark}) => {
 
     const handlePlayBookmark = (e) => {
         e.stopPropagation();
-        chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
-            const tabId = tabs[0].id;
-            chrome.tabs.sendMessage(tabId, { type: 'PLAY', value: bookmark.time });
-        });
+        onPlayBookmark(bookmark.time);
     }
 
     const handleEditClick = (e) => {
@@ -33,7 +30,7 @@ const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark}) => {
     };
 
     const getTime = (seconds) => {
-        var date = new Date(0);
+        let date = new Date(0);
         date.setSeconds(seconds);
       
         return date.toISOString().substring(11, 19);
