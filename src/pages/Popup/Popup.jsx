@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Bookmark from './Bookmark/Bookmark';
+import SettingsImage from '../../assets/img/settings.png';
 import './Popup.css';
 
 /**
  * TODO:
  * Add keyboard shortcuts to add and navigate through bookmarks
- * bookmark sharing 
+ * bookmark sharing (youtube link&t=time)
  * 
  * BUGS:
  * save bookmark button doesn't show up sometimes 
@@ -61,7 +62,14 @@ const Popup = () => {
 
     return (
         <div className="app">
-            <h3 className='title'>Your bookmarks for this video</h3>
+            <div className='title_container'>
+                <h3 className='title'>Video Bookmarks</h3>
+                <img 
+                    src={SettingsImage}
+                    className='control_element'
+                    onClick={() => chrome.runtime.openOptionsPage()}
+                />
+            </div>
             <div className='bookmarks'>
                 {bookmarks.length === 0 && <h3 className='no_bookmarks'>No bookmarks yet</h3>}
                 {bookmarks.map((bookmark) => (
