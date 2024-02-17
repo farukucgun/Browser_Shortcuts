@@ -6,10 +6,8 @@ import './Popup.css';
 /**
  * TODO:
  * Add keyboard shortcuts to add and navigate through bookmarks
- * bookmark sharing (youtube link&t=time)
  * 
  * BUGS:
- * save bookmark button doesn't show up sometimes 
  */
 
 const Popup = () => {

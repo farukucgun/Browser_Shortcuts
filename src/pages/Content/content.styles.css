@@ -1,0 +1,6 @@
+.bookmark_btn {
+    
+    &:active {
+        transform: translateY(4px);
+    }
+}
