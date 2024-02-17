@@ -86,6 +86,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
             const updatedBookmarks = [...bookmarks, newBookmark].sort((a, b) => a.time - b.time);
             chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
+
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (tabs[0]) {
+                    chrome.tabs.sendMessage(tabs[0].id, { type: 'ADD_BOOKMARK', value: value });
+                }
+            });
         });
     }
 
@@ -94,6 +100,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
             const updatedBookmarks = bookmarks.filter((bookmark) => bookmark.time !== value);
             chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
+        });
+
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]) {
+                chrome.tabs.sendMessage(tabs[0].id, { type: 'DELETE_BOOKMARK', value: value });
+            }
         });
     }
 

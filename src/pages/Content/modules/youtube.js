@@ -47,8 +47,15 @@ export const initializeYoutubeLogic = () => {
 
             fetchBookmarks((bookmarks) => {
                 currentVideoBookmarks = bookmarks;
-            });
 
+                const progressBar = document.querySelector('.ytp-progress-bar');
+                currentVideoBookmarks.forEach(bookmark => {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'bookmark-indicator ytp-scrubber-container';
+                    indicator.style.left = `${bookmark.time / youtubePlayer.duration * 100}%`;
+                    progressBar.appendChild(indicator);
+                });
+            });
         }, 1000);
     }
 
@@ -64,5 +71,21 @@ export const initializeYoutubeLogic = () => {
             youtubePlayer.currentTime = value;
             youtubePlayer.play();
         } 
+
+        else if (type === "ADD_BOOKMARK") {
+            const indicator = document.createElement('div');
+            indicator.className = 'bookmark-indicator ytp-scrubber-container';
+            indicator.style.left = `${value / youtubePlayer.duration * 100}%`;
+            document.querySelector('.ytp-progress-bar').appendChild(indicator);
+        }
+
+        else if (type === "DELETE_BOOKMARK") {
+            const progressBar = document.querySelector('.ytp-progress-bar');
+            const position = (value / youtubePlayer.duration * 100).toFixed(6);
+            const indicator = progressBar.querySelector(`.bookmark-indicator[style*="left: ${position}%"]`);
+            if (indicator) {
+                progressBar.removeChild(indicator);
+            }
+        }
     });
 };
