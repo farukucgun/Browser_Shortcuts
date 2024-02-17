@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import playImage from '../../../assets/img/play.png';
 import deleteImage from '../../../assets/img/delete.png';
+import shareImage from '../../../assets/img/share.png';
 
 import '../Popup.css';
 
-const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark, onPlayBookmark}) => {
+const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark, onPlayBookmark, onShareBookmark}) => {
 
     const [isEditing, setIsEditing] = useState(false);
     const [description, setDescription] = useState(bookmark.description);
@@ -28,6 +29,11 @@ const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark, onPlayBookmark}) 
         setIsEditing(false);
         onEditBookmark(bookmark.time, description);
     };
+
+    const handleShareBookmark = (e) => {
+        e.stopPropagation();
+        onShareBookmark(bookmark.time);
+    }
 
     const getTime = (seconds) => {
         let date = new Date(0);
@@ -65,6 +71,11 @@ const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark, onPlayBookmark}) 
                     src={deleteImage}
                     className='control_element'
                     onClick={handleDeleteBookmark}
+                />
+                <img
+                    src={shareImage}
+                    className='control_element'
+                    onClick={handleShareBookmark}
                 />
             </div>
         </div>

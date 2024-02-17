@@ -60,6 +60,12 @@ const Popup = () => {
         await chrome.runtime.sendMessage({ type: 'PLAY_BOOKMARK', value: time });
     };
 
+    const handleShareBookmark = async (time) => {
+        const shavedTime = Math.floor(time);
+        const url = `https://www.youtube.com/watch?v=${currentVideo}&t=${shavedTime}`;
+        await navigator.clipboard.writeText(url);
+    }
+
     return (
         <div className="app">
             <div className='title_container'>
@@ -79,6 +85,7 @@ const Popup = () => {
                         onDeleteBookmark={handleDeleteBookmark}
                         onEditBookmark={handleEditBookmark}
                         onPlayBookmark={handlePlayBookmark}
+                        onShareBookmark={handleShareBookmark}
                     />
                 ))}
             </div>
