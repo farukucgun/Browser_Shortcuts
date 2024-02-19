@@ -118,6 +118,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
         });
     }
+
+    else if (type === 'NEW_TAB_OPTION') {
+        chrome.storage.sync.set({ "newTabOption": value });
+    }
 });
 
 const sendMessageToContentScript = (tabId, url) => {
@@ -145,4 +149,22 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 	chrome.tabs.get(activeInfo.tabId, (tab) => {
 		sendMessageToContentScript(activeInfo.tabId, tab.url);
 	});
+});
+
+const newTabURL = "chrome://newtab/";
+
+chrome.tabs.onCreated.addListener((tab) => {
+
+    chrome.storage.sync.get('newTabOption', function (data) {
+        const enableNewTabPage = data.newTabOption || false;
+        const isNewTab = newTabURL === (tab.url || tab.pendingUrl);
+        
+        if (enableNewTabPage && isNewTab) {
+            chrome.tabs.update(tab.id, { url: chrome.runtime.getURL('newtab.html') });
+        }
+    });
+});
+
+chrome.action.onClicked.addListener((tab) => {
+    chrome.tabs.create({ url: newTabURL });
 });

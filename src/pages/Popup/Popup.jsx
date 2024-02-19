@@ -6,7 +6,7 @@ import './Popup.css';
 /**
  * TODO:
  * Add keyboard shortcuts to add and navigate through bookmarks
- * work on options and new tab pages
+ * work on options and new tab pages (allow disabling new tab page)
  * 
  * BUGS:
  */
