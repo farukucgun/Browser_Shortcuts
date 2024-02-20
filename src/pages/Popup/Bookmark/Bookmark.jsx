@@ -5,14 +5,14 @@ import shareImage from '../../../assets/img/share.png';
 
 import '../Popup.css';
 
-const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark, onPlayBookmark, onShareBookmark}) => {
+const Bookmark = ({bookmark, onRemoveBookmark, onEditBookmark, onPlayBookmark, onShareBookmark}) => {
 
     const [isEditing, setIsEditing] = useState(false);
     const [description, setDescription] = useState(bookmark.description);
 
-    const handleDeleteBookmark = (e) => {
+    const handleRemoveBookmark = (e) => {
         e.stopPropagation();
-        onDeleteBookmark(bookmark.time);
+        onRemoveBookmark(bookmark.time);
     }
 
     const handlePlayBookmark = (e) => {
@@ -70,7 +70,7 @@ const Bookmark = ({bookmark, onDeleteBookmark, onEditBookmark, onPlayBookmark, o
                 <img
                     src={deleteImage}
                     className='control_element'
-                    onClick={handleDeleteBookmark}
+                    onClick={handleRemoveBookmark}
                 />
                 <img
                     src={shareImage}

@@ -19,8 +19,6 @@ chrome.runtime.onInstalled.addListener((details) => {
       }
 
       if (missingShortcuts.length > 0) {
-          // Update the extension UI to inform the user that one or more
-          // commands are currently unassigned.
           console.log('The following commands are missing shortcuts:', missingShortcuts);
       }
 
@@ -76,7 +74,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         chrome.storage.sync.get([videoId], (data) => {
             const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
             const newBookmark = {
-                time: value,
+                time: parseFloat(value.toFixed(2)),
                 description: 'Bookmark at: '
             };
 
@@ -86,25 +84,56 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
             const updatedBookmarks = [...bookmarks, newBookmark].sort((a, b) => a.time - b.time);
             chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
+        });
+
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]) {
+                chrome.tabs.sendMessage(tabs[0].id, { type: 'ADD_BOOKMARK', value: value });
+            }
+        });
+    }
+
+    else if (type === 'REMOVE_BOOKMARK') {
+        chrome.storage.sync.get([videoId], (data) => {
+            const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
+            const updatedBookmarks = bookmarks.filter((bookmark) => bookmark.time !== value);
+
+            if (updatedBookmarks.length === 0) {
+                chrome.storage.sync.remove(videoId);
+            } else {
+                chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
+            }
 
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 if (tabs[0]) {
-                    chrome.tabs.sendMessage(tabs[0].id, { type: 'ADD_BOOKMARK', value: value });
+                    chrome.tabs.sendMessage(tabs[0].id, { type: 'REMOVE_BOOKMARK', value: value });
                 }
             });
         });
     }
 
-    else if (type === 'DELETE_BOOKMARK') {
-        chrome.storage.sync.get([videoId], (data) => {
-            const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
-            const updatedBookmarks = bookmarks.filter((bookmark) => bookmark.time !== value);
-            chrome.storage.sync.set({ [videoId]: JSON.stringify(updatedBookmarks) });
+    else if (type === 'REMOVE_VIDEO_BOOKMARKS') {
+        chrome.storage.sync.remove(videoId);
+
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]) {
+                chrome.tabs.sendMessage(tabs[0].id, { type: 'REMOVE_VIDEO_BOOKMARKS' });
+            }
+        });
+    }
+
+    else if (type === 'REMOVE_ALL_BOOKMARKS') {
+        chrome.storage.sync.get(null, (data) => {
+            Object.keys(data).forEach((key) => {
+                if (Array.isArray(JSON.parse(data[key]))) { // careful, removes all the keys that are arrays
+                    chrome.storage.sync.remove(key);
+                }
+            });
         });
 
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {
-                chrome.tabs.sendMessage(tabs[0].id, { type: 'DELETE_BOOKMARK', value: value });
+                chrome.tabs.sendMessage(tabs[0].id, { type: 'REMOVE_ALL_BOOKMARKS' });
             }
         });
     }
@@ -119,8 +148,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
     }
 
-    else if (type === 'NEW_TAB_OPTION') {
+    else if (type === 'SET_NEW_TAB_OPTION') {
         chrome.storage.sync.set({ "newTabOption": value });
+    }
+
+    else if (type === 'GET_NEW_TAB_OPTION') {
+        chrome.storage.sync.get('newTabOption', function (data) {
+            const enableNewTabPage = data.newTabOption || false;
+            sendResponse(enableNewTabPage);
+        });
+        return true;
     }
 });
 

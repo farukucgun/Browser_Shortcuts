@@ -75,17 +75,24 @@ export const initializeYoutubeLogic = () => {
         else if (type === "ADD_BOOKMARK") {
             const indicator = document.createElement('div');
             indicator.className = 'bookmark-indicator ytp-scrubber-container';
-            indicator.style.left = `${value / youtubePlayer.duration * 100}%`;
+            const position = (value / youtubePlayer.duration * 100).toFixed(2);
+            indicator.style.left = `${position}%`;
             document.querySelector('.ytp-progress-bar').appendChild(indicator);
         }
 
-        else if (type === "DELETE_BOOKMARK") {
+        else if (type === "REMOVE_BOOKMARK") {
             const progressBar = document.querySelector('.ytp-progress-bar');
-            const position = (value / youtubePlayer.duration * 100).toFixed(6);
+            const position = (value / youtubePlayer.duration * 100).toFixed(2);
             const indicator = progressBar.querySelector(`.bookmark-indicator[style*="left: ${position}%"]`);
             if (indicator) {
                 progressBar.removeChild(indicator);
-            }
+            } 
+        }
+
+        else if (type === ("REMOVE_VIDEO_BOOKMARKS" || "REMOVE_ALL_BOOKMARKS")) {
+            const progressBar = document.querySelector('.ytp-progress-bar');
+            const indicators = progressBar.querySelectorAll('.bookmark-indicator');
+            indicators.forEach(indicator => progressBar.removeChild(indicator));
         }
     });
 };
