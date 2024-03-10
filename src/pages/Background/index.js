@@ -4,29 +4,29 @@ chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
       checkCommandShortcuts();
     }
-  });
+});
   
-  // Only use this function during the initial install phase. After
-  // installation the user may have intentionally unassigned commands.
-  function checkCommandShortcuts() {
+// Only use this function during the initial install phase. After
+// installation the user may have intentionally unassigned commands.
+function checkCommandShortcuts() {
     chrome.commands.getAll((commands) => {
-      let missingShortcuts = [];
-  
-      for (let {name, shortcut} of commands) {
-        if (shortcut === '') {
-          missingShortcuts.push(name);
+        let missingShortcuts = [];
+    
+        for (let {name, shortcut} of commands) {
+            if (shortcut === '') {
+                missingShortcuts.push(name);
+            }
         }
-      }
 
-      if (missingShortcuts.length > 0) {
-          console.log('The following commands are missing shortcuts:', missingShortcuts);
-      }
+        if (missingShortcuts.length > 0) {
+            console.log('The following commands are missing shortcuts:', missingShortcuts);
+        }
 
-      else {
-          console.log('All commands have shortcuts assigned.');
-      }
+        else {
+            console.log('All commands have shortcuts assigned.');
+        }
     });
-  }
+}
 
 chrome.commands.onCommand.addListener((command) => {
     console.log(`Command "${command}" triggered`);
@@ -57,6 +57,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         chrome.storage.sync.get([videoId], (data) => {
             const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
             sendResponse(bookmarks);
+        });
+
+        return true;
+    }
+
+    else if (type === 'GET_ALL_BOOKMARKS') {
+        chrome.storage.sync.get(null, (data) => {
+            const allBookmarks = Object.keys(data).reduce((acc, key) => {
+                if (Array.isArray(JSON.parse(data[key]))) {
+                    acc[key] = JSON.parse(data[key]);
+                }
+                return acc;
+            }, {});
+            sendResponse(allBookmarks);
         });
 
         return true;
@@ -158,6 +172,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             sendResponse(enableNewTabPage);
         });
         return true;
+    }
+
+    else if (type === 'OPEN_SIDE_PANEL') {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]) {
+                // chrome.sidePanel.getOptions({ tabId: tabs[0].id }, (options) => {
+                //     console.log('Options:', options);
+                //     if (options.enabled) {
+                //         chrome.sidePanel.setOptions({
+                //             tabId: tabs[0].id,
+                //             enabled: false,
+                //         });
+                //         chrome.sidePanel.close({ tabId: tabs[0].id });
+                //     }
+
+                //     else {
+                        chrome.sidePanel.setOptions({
+                            tabId: tabs[0].id,
+                            path: 'panel.html',
+                            enabled: true,
+                        });
+                        chrome.sidePanel.open({ tabId: tabs[0].id });
+                //     }
+                // });
+            }
+        });
     }
 });
 
