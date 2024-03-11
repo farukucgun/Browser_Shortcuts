@@ -46,8 +46,7 @@
     "tabs",
     "storage",
     "activeTab",
-    "contextMenus",
-    "sidePanel"
+    "contextMenus"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';",

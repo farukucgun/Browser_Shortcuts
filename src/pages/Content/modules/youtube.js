@@ -76,8 +76,11 @@ export const initializeYoutubeLogic = () => {
             const indicator = document.createElement('div');
             indicator.className = 'bookmark-indicator ytp-scrubber-container';
             const position = (value / youtubePlayer.duration * 100).toFixed(2);
-            indicator.style.left = `${position}%`;
-            document.querySelector('.ytp-progress-bar').appendChild(indicator);
+            // window.alert("duration: " + youtubePlayer.duration + " position: " + position + " value: " + value);
+            setTimeout(() => {
+                indicator.style.left = `${position}%`;
+                document.querySelector('.ytp-progress-bar').appendChild(indicator);
+            }, 500);
         }
 
         else if (type === "REMOVE_BOOKMARK") {

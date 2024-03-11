@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Bookmark from './Bookmark/Bookmark';
 import SettingsImage from '../../assets/img/settings.png';
 import DeleteImage from '../../assets/img/delete.png';
-import SidePanelImage from '../../assets/img/side_panel.png';
 import './Popup.css';
 
 /**
@@ -72,10 +71,6 @@ const Popup = () => {
         await chrome.runtime.sendMessage({ type: 'REMOVE_VIDEO_BOOKMARKS', videoId: currentVideo });
     }
 
-    const handleOpenSidePanel = async () => {
-        await chrome.runtime.sendMessage({ type: 'OPEN_SIDE_PANEL' });
-    }
-
     return (
         <div className="app">
             <div className='title_container'>
@@ -84,11 +79,6 @@ const Popup = () => {
                     src={SettingsImage}
                     className='control_element'
                     onClick={() => chrome.runtime.openOptionsPage()}
-                />
-                <img
-                    src={SidePanelImage}
-                    className='control_element'
-                    onClick={handleOpenSidePanel}
                 />
                 <img
                     src={DeleteImage}

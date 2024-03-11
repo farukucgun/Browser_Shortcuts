@@ -64,13 +64,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     else if (type === 'GET_ALL_BOOKMARKS') {
         chrome.storage.sync.get(null, (data) => {
-            const allBookmarks = Object.keys(data).reduce((acc, key) => {
+            const allBookmarks = [];
+            Object.keys(data).forEach((key) => {
                 if (Array.isArray(JSON.parse(data[key]))) {
-                    acc[key] = JSON.parse(data[key]);
+                    allBookmarks.push({ videoId: key, bookmarks: JSON.parse(data[key]) });
                 }
-                return acc;
-            }, {});
+            });
             sendResponse(allBookmarks);
+            console.log('All bookmarks:', allBookmarks);
         });
 
         return true;
@@ -84,6 +85,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
     }
 
+    // place the bookmark arrays in an object 
     else if (type === 'ADD_BOOKMARK') {
         chrome.storage.sync.get([videoId], (data) => {
             const bookmarks = data[videoId] ? JSON.parse(data[videoId]) : [];
@@ -172,32 +174,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             sendResponse(enableNewTabPage);
         });
         return true;
-    }
-
-    else if (type === 'OPEN_SIDE_PANEL') {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            if (tabs[0]) {
-                // chrome.sidePanel.getOptions({ tabId: tabs[0].id }, (options) => {
-                //     console.log('Options:', options);
-                //     if (options.enabled) {
-                //         chrome.sidePanel.setOptions({
-                //             tabId: tabs[0].id,
-                //             enabled: false,
-                //         });
-                //         chrome.sidePanel.close({ tabId: tabs[0].id });
-                //     }
-
-                //     else {
-                        chrome.sidePanel.setOptions({
-                            tabId: tabs[0].id,
-                            path: 'panel.html',
-                            enabled: true,
-                        });
-                        chrome.sidePanel.open({ tabId: tabs[0].id });
-                //     }
-                // });
-            }
-        });
     }
 });
 
